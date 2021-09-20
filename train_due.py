@@ -15,6 +15,8 @@ from gpytorch.likelihoods import SoftmaxLikelihood
 from due import dkl
 from due.wide_resnet import WideResNet
 from due.rff_laplace import Laplace
+from due.resnet import resnet50, resnet110
+from due.densenet import densenet121
 
 from lib.datasets import get_dataset
 from lib.evaluate_ood import get_ood_metrics
@@ -36,18 +38,39 @@ def main(hparams):
     print(f"Training with {hparams}")
     hparams.save(results_dir / "hparams.json")
 
-    feature_extractor = WideResNet(
-        input_size,
-        hparams.spectral_conv,
-        hparams.spectral_bn,
-        dropout_rate=hparams.dropout_rate,
-        coeff=hparams.coeff,
-        n_power_iterations=hparams.n_power_iterations,
-    )
+    if hparams.model == "WRN":
+        feature_extractor = WideResNet(
+            input_size,
+            hparams.spectral_conv,
+            hparams.spectral_bn,
+            dropout_rate=hparams.dropout_rate,
+            coeff=hparams.coeff,
+            n_power_iterations=hparams.n_power_iterations,
+        )
+    elif hparams.model == "ResNet50":
+        feature_extractor = resnet50(
+            spectral_normalization=hparams.spectral_conv,
+            mod=False
+        )
+    elif hparams.model == "ResNet110":
+        feature_extractor = resnet110(
+            spectral_normalization=hparams.spectral_conv,
+            mod=False
+        )
+    elif hparams.model == "DenseNet121":
+        feature_extractor = densenet121(
+            spectral_normalization=hparams.spectral_conv,
+            mod=False
+        )
 
     if hparams.rff_laplace:
         # Defaults from SNGP in uncertainty-baselines
-        num_deep_features = 640
+        if hparams.model == "WRN":
+            num_deep_features = 640
+        elif hparams.model == "ResNet50" or hparams.model == "ResNet110":
+            num_deep_features = 2048
+        elif hparams.model == "DenseNet121":
+            num_deep_features = 1024
         num_gp_features = 128
         num_random_features = 1024
         normalize_gp_features = True
@@ -287,6 +310,13 @@ if __name__ == "__main__":
         default="CIFAR10",
         choices=["CIFAR10", "CIFAR100"],
         help="Pick a dataset",
+    )
+
+    parser.add_argument(
+        "--model",
+        default="WRN",
+        choices=["WRN", "ResNet50", "ResNet110", "DenseNet121"],
+        help="Pick a model architecture",
     )
 
     parser.add_argument(
