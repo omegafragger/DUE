@@ -291,7 +291,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument(
-        "--batch_size", type=int, default=128, help="Batch size to use for training"
+        "--batch_size", type=int, default=256, help="Batch size to use for training"
     )
 
     parser.add_argument(
