@@ -3,3 +3,9 @@ runs
 __pycache__
 */__pycache__
 slurm_scripts
+.ipynb_checkpoints
+CIFAR10
+CIFAR100
+SVHN
+cifar10_c
+tiny-imagenet-200
